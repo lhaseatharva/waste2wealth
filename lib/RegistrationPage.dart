@@ -60,7 +60,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
-  // Generate a unique userid
   String _generateUniqueUserId() {
     final String chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     final Random random = Random();
@@ -122,7 +121,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     );
                   }).toList(),
                 ),
-                // Display the sub-category dropdown for the Employee role
                 if (_selectedRole == 'Employee')
                   DropdownButton<String>(
                     value: _selectedSubCategory,
@@ -149,7 +147,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         Icons.email,
                       ),
                       border: OutlineInputBorder(
-                        // Apply the border
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
@@ -171,7 +168,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         Icons.lock,
                       ),
                       border: OutlineInputBorder(
-                        // Apply the border
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
@@ -193,19 +189,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           email: _emailController.text,
                           password: _passwordController.text,
                         );
-
-                        // Generate a unique userid
                         String userId = _generateUniqueUserId();
 
-                        // Save user details under "Users" collection
                         await _firestore.collection('Users').doc(userId).set({
                           'email': _emailController.text,
                           'role': _selectedRole,
-                          'subCategory':
-                              _selectedSubCategory, // Added subCategory field
+                          'subCategory': _selectedSubCategory,
                           'userid': userId,
                           'isAdmin': false,
-                          // Add additional user data as needed
                         });
 
                         setState(() {
@@ -227,7 +218,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 if (_registrationSuccess)
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to the login screen
                       Navigator.of(context).pushReplacementNamed('/login');
                     },
                     style: ButtonStyle(

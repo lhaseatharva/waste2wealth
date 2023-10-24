@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste2wealth/AdminPanel.dart';
-import 'package:waste2wealth/EmployeeDashboard.dart';
+//import 'package:waste2wealth/EmployeeDashboard.dart';
 import 'package:waste2wealth/PickUpStaffDashboard.dart';
 
 class LoginPage extends StatefulWidget {
