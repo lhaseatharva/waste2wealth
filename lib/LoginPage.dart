@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste2wealth/AdminPanel.dart';
 import 'package:waste2wealth/EmployeeDashboard.dart';
+import 'package:waste2wealth/PickUpStaffDashboard.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   String _selectedRole = 'Employee'; // Default value
+  String _selectedSubCategory = 'Pickup Staff'; // Default value
 
   List<String> carouselImages = [
     'assets/images/carousel/image_1.jpg',
@@ -29,7 +31,13 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<bool> _loginAndCheckAdmin() async {
+  void _handleSubCategoryChange(String value) {
+    setState(() {
+      _selectedSubCategory = value;
+    });
+  }
+
+  Future<void> _handleLogin() async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
@@ -39,12 +47,33 @@ class _LoginPageState extends State<LoginPage> {
       if (_selectedRole == 'Admin') {
         // Check if the user is an admin
         bool isAdmin = await _checkAdminStatus(userCredential.user!.email!);
-        return isAdmin;
+        if (isAdmin) {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      AdminPanel(adminEmail: _emailController.text)));
+          _showSuccessDialog(); // Show success dialog
+        }
+      } else if (_selectedRole == 'Employee') {
+        if (_selectedSubCategory == 'Pickup Staff') {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      PickUpStaffDashboard(userEmail: _emailController.text)));
+          _showSuccessDialog(); // Show success dialog
+        } else if (_selectedSubCategory == 'Compost Facility Staff') {
+          // Add code to navigate to the Compost Facility Staff Dashboard
+          _showSuccessDialog(); // Show success dialog
+        }
+      } else if (_selectedRole == 'Buyer') {
+        // Redirect to Buyer-specific page (add your logic here)
+        _showSuccessDialog(); // Show success dialog
       }
-      return true; // For other roles (Employee, Buyer)
     } catch (e) {
       print('Error during login: $e');
-      return false;
+      _showLoginErrorDialog(); // Show login error dialog
     }
   }
 
@@ -67,30 +96,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _handleLogin() async {
-    bool isAdmin = await _loginAndCheckAdmin();
-
-    if (isAdmin) {
-      if (_selectedRole == 'Admin') {
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    AdminPanel(adminEmail: _emailController.text)));
-        _showSuccessDialog(); // Show success dialog
-      } else if (_selectedRole == 'Employee') {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => EmployeeDashboard()));
-        _showSuccessDialog(); // Show success dialog
-      } else if (_selectedRole == 'Buyer') {
-        // Redirect to Buyer-specific page (add your logic here)
-        _showSuccessDialog(); // Show success dialog
-      }
-    } else {
-      _showCategoryMismatchDialog(); // Show category mismatch dialog
-    }
-  }
-
   void _showSuccessDialog() {
     showDialog(
       context: context,
@@ -98,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
         return AlertDialog(
           title: Text('Login Success'),
           content: Text(
-              'Successfully Logged in under the category : $_selectedRole'),
+              'Successfully Logged in under the category: $_selectedRole as $_selectedSubCategory'),
           actions: [
             TextButton(
               onPressed: () {
@@ -112,14 +117,13 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _showCategoryMismatchDialog() {
+  void _showLoginErrorDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Category Mismatch'),
-          content:
-              Text('No matching account found for the provided credentials.'),
+          title: Text('Login Error'),
+          content: Text('An error occurred during login.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -139,7 +143,6 @@ class _LoginPageState extends State<LoginPage> {
       theme: ThemeData(
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
-            // Add border to the TextFormField
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
@@ -179,9 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: DropdownButton<String>(
                     value: _selectedRole,
                     onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedRole = newValue!;
-                      });
+                      _handleRoleChange(newValue!);
                     },
                     items: <String>['Employee', 'Buyer', 'Admin']
                         .map<DropdownMenuItem<String>>((String value) {
@@ -192,6 +193,23 @@ class _LoginPageState extends State<LoginPage> {
                     }).toList(),
                   ),
                 ),
+                SizedBox(height: 16),
+                if (_selectedRole == 'Employee')
+                  Center(
+                    child: DropdownButton<String>(
+                      value: _selectedSubCategory,
+                      onChanged: (String? newValue) {
+                        _handleSubCategoryChange(newValue!);
+                      },
+                      items: <String>['Pickup Staff', 'Compost Facility Staff']
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
