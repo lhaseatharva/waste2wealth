@@ -1,8 +1,9 @@
+import 'dart:math';
+
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'dart:math';
 
 class RegistrationPage extends StatefulWidget {
   @override
@@ -14,8 +15,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
-  String _selectedRole = 'Restaurant';
+  String _selectedRole = 'Employee';
+  String _selectedSubCategory = 'Pickup Staff';
   bool _registrationSuccess = false;
+  final _formKey = GlobalKey<FormState>();
+
+  List<String> carouselImages = [
+    'assets/images/carousel/image_1.jpg',
+    'assets/images/carousel/image_2.jpg',
+    'assets/images/carousel/image_3.jpg',
+    'assets/images/carousel/image_4.jpg',
+  ];
 
   void _handleRoleChange(String value) {
     setState(() {
@@ -23,23 +33,20 @@ class _RegistrationPageState extends State<RegistrationPage> {
     });
   }
 
-  // Generate a unique userid
-  String _generateUniqueUserId() {
-    final String chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    final Random random = Random();
-    final String userId = String.fromCharCodes(Iterable.generate(
-        12, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
-    return userId;
+  void _handleSubCategoryChange(String value) {
+    setState(() {
+      _selectedSubCategory = value;
+    });
   }
 
-  void _showRegistrationSuccessDialog() {
-    showDialog(
+  Future<void> _showRegistrationSuccessDialog() async {
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Registration Success'),
           content: Text(
-              'You are successfully registered under the category: $_selectedRole'),
+              'You are successfully registered under the category: $_selectedRole as $_selectedSubCategory'),
           actions: [
             TextButton(
               onPressed: () {
@@ -53,6 +60,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
+  // Generate a unique userid
+  String _generateUniqueUserId() {
+    final String chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final Random random = Random();
+    final String userId = String.fromCharCodes(Iterable.generate(
+        12, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+    return userId;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,143 +78,166 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
       body: Center(
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              CarouselSlider(
-                items: [
-                  Image.asset('assets/images/carousel/image_1.jpg'),
-                  Image.asset('assets/images/carousel/image_2.jpg'),
-                  Image.asset('assets/images/carousel/image_3.jpg'),
-                  Image.asset('assets/images/carousel/image_4.jpg'),
-                ],
-                options: CarouselOptions(
-                  height: 200.0,
-                  enlargeCenterPage: true,
-                  autoPlay: true,
-                  aspectRatio: 2.0,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Text(
-                  'Select User Type:',
-                  style: TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              DropdownButton<String>(
-                value: _selectedRole,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedRole = newValue!;
-                  });
-                },
-                items: <String>['Restaurant', 'Employee', 'Buyer']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 16.0),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email ID',
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.deepOrange),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.deepOrange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.deepOrange),
-                    ),
-                    prefixIcon: Icon(
-                      Icons.email,
-                      color: Colors.deepOrange,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.deepOrange),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.deepOrange),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.deepOrange),
-                    ),
-                    prefixIcon: Icon(
-                      Icons.lock,
-                      color: Colors.deepOrange,
-                    ),
-                  ),
-                  obscureText: true,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    UserCredential userCredential =
-                        await _auth.createUserWithEmailAndPassword(
-                      email: _emailController.text,
-                      password: _passwordController.text,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: <Widget>[
+                CarouselSlider(
+                  items: carouselImages.map((imagePath) {
+                    return Image.asset(
+                      imagePath,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                     );
-
-                    // Generate a unique userid
-                    String userId = _generateUniqueUserId();
-
-                    // Save user details under "Users" collection
-                    await _firestore.collection('Users').doc(userId).set({
-                      'email': _emailController.text,
-                      'role': _selectedRole,
-                      'userid': userId,
-                      'isAdmin': false, // Add isAdmin field and set it to false
-                      // Add additional user data as needed
-                    });
-
-                    setState(() {
-                      _registrationSuccess = true;
-                    });
-
-                    _showRegistrationSuccessDialog();
-                  } catch (e) {
-                    print('Error during registration: $e');
-                  }
-                },
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all(Colors.deepOrange.shade200),
+                  }).toList(),
+                  options: CarouselOptions(
+                    height: 200.0,
+                    enlargeCenterPage: true,
+                    autoPlay: true,
+                    aspectRatio: 2.0,
+                  ),
                 ),
-                child: Text('Register'),
-              ),
-              if (_registrationSuccess)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    'Select User Type:',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                DropdownButton<String>(
+                  value: _selectedRole,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedRole = newValue!;
+                    });
+                  },
+                  items: <String>['Restaurant', 'Employee', 'Buyer']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                // Display the sub-category dropdown for the Employee role
+                if (_selectedRole == 'Employee')
+                  DropdownButton<String>(
+                    value: _selectedSubCategory,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedSubCategory = newValue!;
+                      });
+                    },
+                    items: <String>['Pickup Staff', 'Ground Staff']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(
+                        Icons.email,
+                      ),
+                      border: OutlineInputBorder(
+                        // Apply the border
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: Icon(
+                        Icons.lock,
+                      ),
+                      border: OutlineInputBorder(
+                        // Apply the border
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
                 ElevatedButton(
-                  onPressed: () {
-                    // Navigate to the login screen
-                    Navigator.of(context).pushReplacementNamed('/login');
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      try {
+                        UserCredential userCredential =
+                            await _auth.createUserWithEmailAndPassword(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        );
+
+                        // Generate a unique userid
+                        String userId = _generateUniqueUserId();
+
+                        // Save user details under "Users" collection
+                        await _firestore.collection('Users').doc(userId).set({
+                          'email': _emailController.text,
+                          'role': _selectedRole,
+                          'subCategory':
+                              _selectedSubCategory, // Added subCategory field
+                          'userid': userId,
+                          'isAdmin': false,
+                          // Add additional user data as needed
+                        });
+
+                        setState(() {
+                          _registrationSuccess = true;
+                        });
+
+                        await _showRegistrationSuccessDialog();
+                      } catch (e) {
+                        print('Error during registration: $e');
+                      }
+                    }
                   },
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all(Colors.deepOrange.shade200),
                   ),
-                  child: Text('Go to Login'),
+                  child: Text('Register'),
                 ),
-            ],
+                if (_registrationSuccess)
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to the login screen
+                      Navigator.of(context).pushReplacementNamed('/login');
+                    },
+                    style: ButtonStyle(
+                      backgroundColor:
+                          MaterialStateProperty.all(Colors.deepOrange.shade200),
+                    ),
+                    child: Text('Go to Login'),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

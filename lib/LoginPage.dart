@@ -135,89 +135,99 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.deepOrange,
-        title: Text('Login Page'),
+    return MaterialApp(
+      theme: ThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            // Add border to the TextFormField
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+        ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            children: <Widget>[
-              CarouselSlider(
-                items: carouselImages.map((imagePath) {
-                  return Image.asset(
-                    imagePath,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  );
-                }).toList(),
-                options: CarouselOptions(
-                  height: 200.0,
-                  enlargeCenterPage: true,
-                  autoPlay: true,
-                  aspectRatio: 2.0,
-                ),
-              ),
-              Text(
-                'Select User Type',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Center(
-                child: DropdownButton<String>(
-                  value: _selectedRole,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedRole = newValue!;
-                    });
-                  },
-                  items: <String>['Employee', 'Buyer', 'Admin']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
+      home: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.deepOrange,
+          title: Text('Login Page'),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                CarouselSlider(
+                  items: carouselImages.map((imagePath) {
+                    return Image.asset(
+                      imagePath,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                     );
                   }).toList(),
+                  options: CarouselOptions(
+                    height: 200.0,
+                    enlargeCenterPage: true,
+                    autoPlay: true,
+                    aspectRatio: 2.0,
+                  ),
                 ),
-              ),
-              SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(
-                      Icons.email,
+                Text(
+                  'Select User Type',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Center(
+                  child: DropdownButton<String>(
+                    value: _selectedRole,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedRole = newValue!;
+                      });
+                    },
+                    items: <String>['Employee', 'Buyer', 'Admin']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon: Icon(
+                        Icons.email,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(
-                      Icons.lock,
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: Icon(
+                        Icons.lock,
+                      ),
                     ),
+                    obscureText: true,
                   ),
-                  obscureText: true,
                 ),
-              ),
-              ElevatedButton(
-                onPressed: _handleLogin,
-                child: Text('Login'),
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all(Colors.deepOrange.shade200),
+                ElevatedButton(
+                  onPressed: _handleLogin,
+                  child: Text('Login'),
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all(Colors.deepOrange.shade200),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
