@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/ManageSchedule.dart';
+import 'package:waste2wealth/Employee/Pickup%20Staff/ManageRequests.dart'; // Import the ManageRequests class
 
 class PickUpStaffDashboard extends StatefulWidget {
   final String userEmail;
@@ -69,9 +70,9 @@ class _PickUpStaffDashboardState extends State<PickUpStaffDashboard> {
             ),
             ListTile(
               leading: Icon(Icons.list),
-              title: Text('Check Requests'),
+              title: Text('Manage Requests'),
               onTap: () {
-                // Add logic to navigate to the Check Requests screen
+                Navigator.pushNamed(context, '/managereq');
               },
             ),
             ListTile(

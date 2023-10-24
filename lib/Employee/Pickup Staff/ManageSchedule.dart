@@ -126,11 +126,11 @@ class _ManageScheduleState extends State<ManageSchedule> {
       'name': name,
       'contact': contact,
       'email': user,
-      'mondayArea': dayToArea['Monday'],
-      'tuesdayArea': dayToArea['Tuesday'],
-      'wednesdayArea': dayToArea['Wednesday'],
-      'thursdayArea': dayToArea['Thursday'],
-      'fridayArea': dayToArea['Friday'],
+      'Monday': dayToArea['Monday'],
+      'Tuesday': dayToArea['Tuesday'],
+      'Wednesday': dayToArea['Wednesday'],
+      'Thursday': dayToArea['Thursday'],
+      'Friday': dayToArea['Friday'],
     };
     firestore.collection('pickup_schedule').doc(user).set(scheduleData);
     Navigator.pop(context);

@@ -152,7 +152,8 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
 
   Future<void> _submitRequest() async {
     String restaurantName = _restaurantNameController.text;
-    String address = _addressController.text;
+    String area =
+        _addressController.text; // Change field name from 'address' to 'area'
     String contactPerson = _contactPersonController.text;
     String contactNumber = _contactNumberController.text;
     String pickupFrequency = _pickupFrequency;
@@ -166,13 +167,14 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
 
     await _firestore.collection('pickup_requests').doc(requestId).set({
       'restaurantName': restaurantName,
-      'address': address,
+      'area': area, // Change field name from 'address' to 'area'
       'contactPerson': contactPerson,
       'contactNumber': contactNumber,
       'pickupFrequency': pickupFrequency,
       'status': status,
       'timestamp': FieldValue.serverTimestamp(),
-      'dayOfWeek': dayOfWeek, // Store the day of the week
+      'dayOfWeek': dayOfWeek,
+      'documentID': requestId,
     });
 
     // Clear the input fields
