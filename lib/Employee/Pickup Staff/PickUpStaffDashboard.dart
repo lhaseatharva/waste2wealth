@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:waste2wealth/Employee/Pickup%20Staff/ManageSchedule.dart';
 
 class PickUpStaffDashboard extends StatefulWidget {
   final String userEmail;
@@ -54,18 +55,27 @@ class _PickUpStaffDashboardState extends State<PickUpStaffDashboard> {
               ),
             ),
             ListTile(
-              title: Text('Set Schedule'),
+              leading: Icon(Icons.calendar_today),
+              title: Text('Manage Schedule'),
               onTap: () {
-                // Add logic to navigate to the Set Schedule screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ManageSchedule(userEmail: widget.userEmail),
+                  ),
+                );
               },
             ),
             ListTile(
+              leading: Icon(Icons.list),
               title: Text('Check Requests'),
               onTap: () {
                 // Add logic to navigate to the Check Requests screen
               },
             ),
             ListTile(
+              leading: Icon(Icons.exit_to_app),
               title: Text('Log Out'),
               onTap: () {
                 _showLogoutConfirmationDialog();
@@ -80,7 +90,6 @@ class _PickUpStaffDashboardState extends State<PickUpStaffDashboard> {
     );
   }
 
-  // Function to display the logout confirmation dialog
   void _showLogoutConfirmationDialog() {
     showDialog(
       context: context,
@@ -91,17 +100,15 @@ class _PickUpStaffDashboardState extends State<PickUpStaffDashboard> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                // Add logic to perform logout
-                // For example, navigate to the login screen
                 Navigator.of(context).pushReplacementNamed('/login');
               },
-              child: Text('Log Out'),
+              child: Text('Yes'),
             ),
           ],
         );
