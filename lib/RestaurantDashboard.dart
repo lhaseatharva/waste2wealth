@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
-import 'package:intl/intl.dart';
 
 class RestaurantDashboard extends StatefulWidget {
   @override
@@ -13,11 +12,20 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
   final _formKey = GlobalKey<FormState>();
 
   TextEditingController _restaurantNameController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
+  TextEditingController _areaController = TextEditingController();
   TextEditingController _contactPersonController = TextEditingController();
   TextEditingController _contactNumberController = TextEditingController();
 
-  String _pickupFrequency = 'Daily'; // Default value
+  // Map to store the selected days of the week
+  Map<String, bool> selectedDays = {
+    'Monday': false,
+    'Tuesday': false,
+    'Wednesday': false,
+    'Thursday': false,
+    'Friday': false,
+    'Saturday': false,
+  };
+
   bool _isSubmitting = false;
 
   @override
@@ -54,14 +62,14 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
               ),
               SizedBox(height: 16),
               TextFormField(
-                controller: _addressController,
+                controller: _areaController,
                 decoration: InputDecoration(
-                  labelText: 'Address',
+                  labelText: 'Area',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter address';
+                    return 'Please enter area';
                   }
                   return null;
                 },
@@ -96,28 +104,28 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                 },
               ),
               SizedBox(height: 16),
-              Text(
-                'Select Pickup Frequency:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              Center(
-                child: DropdownButton<String>(
-                  value: _pickupFrequency,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _pickupFrequency = newValue!;
-                    });
-                  },
-                  items: <String>['Daily', 'Weekly', 'Bi-Weekly', 'Tri-Weekly']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+              ExpansionTile(
+                title: Text(
+                  'Select Days of Pickup:',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
+                children: [
+                  Column(
+                    children: selectedDays.keys.map((day) {
+                      return CheckboxListTile(
+                        title: Text(day),
+                        value: selectedDays[day],
+                        onChanged: (value) {
+                          setState(() {
+                            selectedDays[day] = value!;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
-              Spacer(), // Create space below the Dropdown
+              Spacer(),
               ElevatedButton(
                 onPressed: _isSubmitting
                     ? null
@@ -152,36 +160,36 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
 
   Future<void> _submitRequest() async {
     String restaurantName = _restaurantNameController.text;
-    String area =
-        _addressController.text; // Change field name from 'address' to 'area'
+    String area = _areaController.text;
     String contactPerson = _contactPersonController.text;
     String contactNumber = _contactNumberController.text;
-    String pickupFrequency = _pickupFrequency;
     String status = 'Pending';
-
-    // Get the current day of the week
-    String dayOfWeek = DateFormat('EEEE').format(DateTime.now());
 
     // Generate a new unique request ID
     String requestId = _generateRequestId();
 
+    // Store the selected days as a map
+    Map<String, bool> daysOfWeek = Map.from(selectedDays);
+
     await _firestore.collection('pickup_requests').doc(requestId).set({
       'restaurantName': restaurantName,
-      'area': area, // Change field name from 'address' to 'area'
+      'area': area,
       'contactPerson': contactPerson,
       'contactNumber': contactNumber,
-      'pickupFrequency': pickupFrequency,
       'status': status,
       'timestamp': FieldValue.serverTimestamp(),
-      'dayOfWeek': dayOfWeek,
+      'daysOfWeek': daysOfWeek,
       'documentID': requestId,
     });
 
-    // Clear the input fields
+    // Clear the input fields and reset selected days
     _restaurantNameController.clear();
-    _addressController.clear();
+    _areaController.clear();
     _contactPersonController.clear();
     _contactNumberController.clear();
+    setState(() {
+      selectedDays = selectedDays.map((key, value) => MapEntry(key, false));
+    });
 
     // Show confirmation dialog
     _showConfirmationDialog();

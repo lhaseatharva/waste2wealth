@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-void main() {
-  runApp(MaterialApp(
-    home: ManageRequests(),
-  ));
-}
+import 'package:intl/intl.dart';
 
 class ManageRequests extends StatefulWidget {
   @override
@@ -15,140 +9,150 @@ class ManageRequests extends StatefulWidget {
 }
 
 class _ManageRequestsState extends State<ManageRequests> {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  List<Request> requests = [];
-  String currentDay = DateFormat('EEEE').format(DateTime.now());
+
+  String userEmail = '';
+  String userArea = ''; // Store the user's selected area
+  String currentDay = '';
+  List<Map<String, dynamic>> requests = [];
 
   @override
   void initState() {
     super.initState();
-    fetchRequests();
+    _fetchData();
   }
 
-  Future<void> fetchRequests() async {
-    try {
-      final email = await fetchUserEmail();
-      if (email != null) {
-        final userSchedule = await fetchUserArea(email);
-        if (userSchedule != null) {
-          final querySnapshot = await firestore
-              .collection('pickup_requests')
-              .where('dayOfWeek', isEqualTo: currentDay)
-              .where('area', isEqualTo: userSchedule.area)
-              .get();
+  Future<void> _fetchData() async {
+    _fetchCurrentDay();
+    await _fetchUserArea();
+    await _fetchMatchingRequests();
+  }
 
-          final List<Request> fetchedRequests = querySnapshot.docs.map((doc) {
-            return Request.fromMap(doc.data());
-          }).toList();
-
+  Future<void> _fetchUserArea() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userEmail = user.email;
+      final dayOfWeek = DateFormat('EEEE').format(DateTime.now());
+      final userDoc = await _firestore
+          .collection('pickup_schedule')
+          .doc(userEmail) // Use the user's email as the document name
+          .get();
+      if (userDoc.exists) {
+        final scheduleData = userDoc.data();
+        final area = scheduleData?[dayOfWeek] as String;
+        if (area != null && area.isNotEmpty) {
+          print('User area for $dayOfWeek: $area');
           setState(() {
-            requests = fetchedRequests;
+            userArea = area; // Set the user's area for the current day
           });
         }
       }
-    } catch (error) {
-      print('Error fetching requests: $error');
     }
   }
 
-  Future<String?> fetchUserEmail() async {
-    try {
-      final User? user = _auth.currentUser;
-      if (user != null) {
-        return user.email;
-      } else {
-        print('User not signed in');
-        return null;
-      }
-    } catch (error) {
-      print('Error fetching user email: $error');
-      return null;
-    }
-  }
-
-  Future<UserSchedule> fetchUserArea(String userEmail) async {
-    try {
-      final userScheduleDocument =
-          await firestore.collection('pickup_schedule').doc(userEmail).get();
-
-      if (userScheduleDocument.exists) {
-        final userScheduleData =
-            userScheduleDocument.data() as Map<String, dynamic>;
-        return UserSchedule.fromMap(userScheduleData);
-      } else {
-        return UserSchedule(
-            area:
-                'Erandwane'); // Provide a default value when the schedule is not found
-      }
-    } catch (error) {
-      print('Error fetching user area: $error');
-      return UserSchedule(
-          area: 'Kothrud'); // Provide a default value in case of an error
-    }
+  void _fetchCurrentDay() {
+    final now = DateTime.now();
+    final formatter = DateFormat('EEEE');
+    currentDay = formatter.format(now);
+    print('Current day: $currentDay');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.deepOrange,
         title: Text('Manage Requests'),
       ),
-      body: ListView.builder(
-        itemCount: requests.length,
-        itemBuilder: (context, index) {
-          final request = requests[index];
-          return RequestCard(
-            request: request,
-          );
-        },
-      ),
+      body: requests.isEmpty
+          ? Center(
+              child: Text('No pickup requests for your area on $currentDay'))
+          : ListView(
+              children: requests.map((request) {
+                return RequestCard(
+                  request: request,
+                  onDelete: () {
+                    _deleteRequest(request); // Handle delete button action
+                  },
+                  onMarkAsComplete: () {
+                    _markAsComplete(
+                        request); // Handle mark as complete button action
+                  },
+                );
+              }).toList(),
+            ),
     );
   }
-}
 
-class Request {
-  final String day;
-  final String area;
-  final String restaurantName;
-  final String contactPerson;
+  Future<void> _fetchMatchingRequests() async {
+    if (userArea.isEmpty || currentDay.isEmpty) {
+      // If the user's area or current day is not set, don't fetch any requests
+      return;
+    }
 
-  Request({
-    required this.day,
-    required this.area,
-    required this.restaurantName,
-    required this.contactPerson,
-  });
+    print('Fetching requests for $userArea on $currentDay');
 
-  factory Request.fromMap(Map<String, dynamic> map) {
-    return Request(
-      day: map['dayOfWeek'],
-      area: map['area'],
-      restaurantName: map['restaurantName'],
-      contactPerson: map['contactPerson'],
-    );
+    final querySnapshot = await _firestore
+        .collection('pickup_requests')
+        .where('area', isEqualTo: userArea)
+        .where('daysOfWeek.$currentDay', isEqualTo: true)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      setState(() {
+        requests = querySnapshot.docs
+            .map((doc) => doc.data() as Map<String, dynamic>)
+            .toList();
+      });
+      print('Fetched ${requests.length} requests');
+    }
   }
-}
 
-class UserSchedule {
-  final String area;
+  void _markAsComplete(Map<String, dynamic> request) async {
+    final documentId = request[
+        'documentID']; // Replace 'documentID' with the actual field name
+    final updateData = {
+      'daysOfWeek.$currentDay': false,
+    };
 
-  UserSchedule({
-    required this.area,
-  });
+    try {
+      await _firestore
+          .collection('pickup_requests')
+          .doc(documentId)
+          .update(updateData);
+    } catch (e) {
+      print('Error marking as complete: $e');
+    }
 
-  factory UserSchedule.fromMap(Map<String, dynamic> map) {
-    return UserSchedule(
-      area: map['area'],
-    );
+    // After marking as complete, refresh the list of requests
+    await _fetchMatchingRequests();
+  }
+
+  void _deleteRequest(Map<String, dynamic> request) async {
+    final documentId = request[
+        'documentID']; // Replace 'documentID' with the actual field name
+
+    try {
+      await _firestore.collection('pickup_requests').doc(documentId).delete();
+    } catch (e) {
+      print('Error deleting request: $e');
+    }
+
+    // After deleting, refresh the list of requests
+    await _fetchMatchingRequests();
   }
 }
 
 class RequestCard extends StatefulWidget {
-  final Request request;
+  final Map<String, dynamic> request;
+  final VoidCallback onDelete;
+  final VoidCallback onMarkAsComplete;
 
   RequestCard({
     required this.request,
+    required this.onDelete,
+    required this.onMarkAsComplete,
   });
 
   @override
@@ -156,7 +160,7 @@ class RequestCard extends StatefulWidget {
 }
 
 class _RequestCardState extends State<RequestCard> {
-  bool isExpanded = false;
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -164,22 +168,57 @@ class _RequestCardState extends State<RequestCard> {
       child: Column(
         children: [
           ListTile(
-            title: Text('Restaurant Name: ${widget.request.restaurantName}'),
-            subtitle: Text('Area: ${widget.request.area}'),
-            onTap: () {
-              setState(() {
-                isExpanded = !isExpanded;
-              });
-            },
+            title: Text(widget.request['restaurantName']),
+            subtitle: Text('Area: ${widget.request['area']}'),
+            trailing: IconButton(
+              icon: Icon(
+                  _isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down),
+              onPressed: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+            ),
           ),
-          if (isExpanded)
-            Column(
-              children: [
-                ListTile(
-                  title:
-                      Text('Contact Person: ${widget.request.contactPerson}'),
-                ),
-              ],
+          if (_isExpanded)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Contact Person: ${widget.request['contactPerson']}'),
+                  Text('Contact Number: ${widget.request['contactNumber']}'),
+                  Center(
+                    // Center the buttons
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: widget.onMarkAsComplete,
+                          child: Text('Mark as Complete'),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                                Colors.deepOrange.shade300),
+                            foregroundColor:
+                                MaterialStateProperty.all(Colors.white),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        ElevatedButton(
+                          onPressed: widget.onDelete,
+                          child: Text('Delete'),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(
+                                Colors.deepOrange.shade300),
+                            foregroundColor:
+                                MaterialStateProperty.all(Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
         ],
       ),
