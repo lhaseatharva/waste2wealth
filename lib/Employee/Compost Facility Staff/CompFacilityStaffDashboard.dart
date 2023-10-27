@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:waste2wealth/LoginPage.dart';
 
 class CompFacilityStaffDashboard extends StatefulWidget {
   @override
@@ -8,13 +10,70 @@ class CompFacilityStaffDashboard extends StatefulWidget {
 
 class _CompFacilityStaffDashboardState
     extends State<CompFacilityStaffDashboard> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String userEmail = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserEmail();
+  }
+
+  Future<void> _fetchUserEmail() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      setState(() {
+        userEmail = user.email ?? '';
+      });
+    }
+  }
+
+  Future<void> _showLogoutConfirmationDialog() async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Log Out'),
+          content: Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Log Out'),
+              onPressed: () {
+                _logout();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _logout() async {
+    try {
+      await _auth.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginPage(),
+        ),
+      );
+    } catch (e) {
+      print('Error logging out: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Compost Facility Management'),
-        backgroundColor:
-            Colors.deepOrange, // Change AppBar color to deep orange
+        backgroundColor: Colors.deepOrange,
       ),
       drawer: Drawer(
         child: ListView(
@@ -35,7 +94,7 @@ class _CompFacilityStaffDashboardState
                   ),
                   SizedBox(height: 10),
                   Text(
-                    'user@example.com', // Replace with the user's email
+                    userEmail, // Use the userEmail property
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -48,7 +107,7 @@ class _CompFacilityStaffDashboardState
               title: Text('Log Out'),
               leading: Icon(Icons.exit_to_app),
               onTap: () {
-                // Handle log out
+                _showLogoutConfirmationDialog();
               },
             ),
           ],
@@ -56,8 +115,8 @@ class _CompFacilityStaffDashboardState
       ),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 1, // Single button in each row
-          childAspectRatio: 3.0, // Controls the height of each grid item
+          crossAxisCount: 1,
+          childAspectRatio: 3.0,
         ),
         itemCount: 4,
         itemBuilder: (context, index) {
@@ -68,7 +127,6 @@ class _CompFacilityStaffDashboardState
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // Online icons for each button
                   _getButtonIcon(index),
                   SizedBox(height: 8),
                   Text(
@@ -85,24 +143,7 @@ class _CompFacilityStaffDashboardState
   }
 
   void _handleButtonTap(int index) {
-    switch (index) {
-      case 0:
-        // Task: Manage Waste
-        _manageWaste();
-        break;
-      case 1:
-        // Task: Allocate Bins to Waste
-        _allocateBinsToWaste();
-        break;
-      case 2:
-        // Task: Supervise Compost Manufacturing
-        _superviseCompostManufacturing();
-        break;
-      case 3:
-        // Task: Update Compost Stock
-        _updateCompostStock();
-        break;
-    }
+    // Implement the logic for button actions
   }
 
   String _getButtonLabel(int index) {
@@ -121,7 +162,7 @@ class _CompFacilityStaffDashboardState
   }
 
   Widget _getButtonIcon(int index) {
-    String imageUrl = ''; // Set the URL of the icon for each button
+    String imageUrl = '';
 
     switch (index) {
       case 0:
@@ -145,27 +186,13 @@ class _CompFacilityStaffDashboardState
         height: 64,
       );
     } else {
-      return SizedBox.shrink(); // Empty space if no match
+      return SizedBox.shrink();
     }
   }
+}
 
-  void _manageWaste() {
-    // Implement the logic for managing waste here
-    // You can show relevant UI or navigate to a new screen
-  }
-
-  void _allocateBinsToWaste() {
-    // Implement the logic for allocating bins to waste here
-    // You can show relevant UI or navigate to a new screen
-  }
-
-  void _superviseCompostManufacturing() {
-    // Implement the logic for supervising compost manufacturing here
-    // You can show relevant UI or navigate to a new screen
-  }
-
-  void _updateCompostStock() {
-    // Implement the logic for updating compost stock here
-    // You can show relevant UI or navigate to a new screen
-  }
+void main() {
+  runApp(MaterialApp(
+    home: CompFacilityStaffDashboard(),
+  ));
 }
