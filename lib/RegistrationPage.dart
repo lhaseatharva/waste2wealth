@@ -129,7 +129,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         _selectedSubCategory = newValue!;
                       });
                     },
-                    items: <String>['Pickup Staff', 'Ground Staff']
+                    items: <String>['Pickup Staff', 'Compost Facility Staff']
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,

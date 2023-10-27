@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste2wealth/AdminPanel.dart';
+import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/CompFacilityStaffDashboard.dart';
 //import 'package:waste2wealth/EmployeeDashboard.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/PickUpStaffDashboard.dart';
 
@@ -64,6 +65,10 @@ class _LoginPageState extends State<LoginPage> {
                       PickUpStaffDashboard(userEmail: _emailController.text)));
           _showSuccessDialog(); // Show success dialog
         } else if (_selectedSubCategory == 'Compost Facility Staff') {
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => CompFacilityStaffDashboard()));
           // Add code to navigate to the Compost Facility Staff Dashboard
           _showSuccessDialog(); // Show success dialog
         }
