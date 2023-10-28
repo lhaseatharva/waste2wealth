@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/AllocateBinsScreen.dart';
+import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/ManageWasteScreen.dart';
 import 'package:waste2wealth/LoginPage.dart';
 
 class CompFacilityStaffDashboard extends StatefulWidget {
@@ -123,7 +125,7 @@ class _CompFacilityStaffDashboardState
           return Card(
             margin: EdgeInsets.all(16),
             child: InkWell(
-              onTap: () => _handleButtonTap(index),
+              onTap: () => _handleButtonTap(index, context),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -142,8 +144,17 @@ class _CompFacilityStaffDashboardState
     );
   }
 
-  void _handleButtonTap(int index) {
-    // Implement the logic for button actions
+  void _handleButtonTap(int index, BuildContext context) {
+    if (index == 0) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => ManageWasteScreen(),
+      ));
+    }
+    if (index == 1) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => AllocateBinsScreen(),
+      ));
+    }
   }
 
   String _getButtonLabel(int index) {

@@ -112,8 +112,11 @@ class _ManageRequestsState extends State<ManageRequests> {
   void _markAsComplete(Map<String, dynamic> request) async {
     final documentId = request[
         'documentID']; // Replace 'documentID' with the actual field name
+
+    // Update both the 'daysOfWeek' field and 'Status' map for the current day
     final updateData = {
       'daysOfWeek.$currentDay': false,
+      'status.$currentDay': 'Complete',
     };
 
     try {

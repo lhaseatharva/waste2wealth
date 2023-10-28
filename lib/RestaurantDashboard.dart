@@ -163,12 +163,21 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
     String area = _areaController.text;
     String contactPerson = _contactPersonController.text;
     String contactNumber = _contactNumberController.text;
-    String status = 'Pending';
 
     // Generate a new unique request ID
     String requestId = _generateRequestId();
 
-    // Store the selected days as a map
+    // Create a map to store the status for each day
+    Map<String, String> status = {};
+    selectedDays.forEach((day, isSelected) {
+      if (isSelected) {
+        status[day] = 'Pending';
+      } else {
+        status[day] = '-';
+      }
+    });
+
+    // Get the existing daysOfWeek data from selectedDays
     Map<String, bool> daysOfWeek = Map.from(selectedDays);
 
     await _firestore.collection('pickup_requests').doc(requestId).set({
@@ -176,9 +185,9 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
       'area': area,
       'contactPerson': contactPerson,
       'contactNumber': contactNumber,
-      'status': status,
       'timestamp': FieldValue.serverTimestamp(),
-      'daysOfWeek': daysOfWeek,
+      'status': status, // Store status as a map
+      'daysOfWeek': daysOfWeek, // Keep daysOfWeek as a map
       'documentID': requestId,
     });
 
@@ -188,7 +197,7 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
     _contactPersonController.clear();
     _contactNumberController.clear();
     setState(() {
-      selectedDays = selectedDays.map((key, value) => MapEntry(key, false));
+      selectedDays = selectedDays.map((day, value) => MapEntry(day, false));
     });
 
     // Show confirmation dialog
