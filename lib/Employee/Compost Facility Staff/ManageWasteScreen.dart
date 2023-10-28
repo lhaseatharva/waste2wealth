@@ -21,36 +21,20 @@ class _ManageWasteScreenState extends State<ManageWasteScreen> {
 
   Future<void> _fetchCompletedRequests() async {
     final currentDay = DateFormat('EEEE').format(DateTime.now());
-
-    final querySnapshot = await _firestore
-        .collection('pickup_requests')
-        .where('status.$currentDay', isEqualTo: 'Complete')
-        .get();
+    final querySnapshot = await _firestore.collection('pickup_requests').get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      final newCompletedRequests = querySnapshot.docs
+      final completedRequests = querySnapshot.docs
           .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
-
-      final restaurantNamesInStock = await _getRestaurantNamesInStock();
-
-      final unprocessedRequests = newCompletedRequests.where((request) {
-        final restaurantName = request['restaurantName'];
-        return !restaurantNamesInStock.contains(restaurantName);
+          .where((request) {
+        final status = request['status'];
+        return status != null && status[currentDay] == 'Complete';
       }).toList();
 
       setState(() {
-        _completedRequests = unprocessedRequests;
+        _completedRequests = completedRequests;
       });
     }
-  }
-
-  Future<List<String>> _getRestaurantNamesInStock() async {
-    final stockQuerySnapshot = await _firestore.collection('waste_stock').get();
-    final restaurantNamesInStock = stockQuerySnapshot.docs
-        .map((doc) => doc.get('restaurantName') as String)
-        .toList();
-    return restaurantNamesInStock;
   }
 
   @override
@@ -70,6 +54,13 @@ class _ManageWasteScreenState extends State<ManageWasteScreen> {
             restaurantName: restaurantName,
             onAddToStock: (double weight) {
               _addToStock(restaurantName, weight);
+
+              // Remove the request from the list when added to stock
+              _removeRequestFromList(index);
+            },
+            onAddedToStock: () {
+              // Remove the request from the list when added to stock
+              _removeRequestFromList(index);
             },
           );
         },
@@ -80,14 +71,13 @@ class _ManageWasteScreenState extends State<ManageWasteScreen> {
   void _addToStock(String restaurantName, double weight) {
     final collectedOn = _dateFormat.format(DateTime.now());
 
-    final wasteStockRef =
-        _firestore.collection('waste_stock').doc(restaurantName);
+    final wasteStockRef = _firestore.collection('waste_stock').doc();
 
     wasteStockRef.set({
       'restaurantName': restaurantName,
       'weight': weight,
       'collectedOn': collectedOn,
-      // Add other relevant data fields as needed
+      'type': 'compostable',
     }).then((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -98,15 +88,23 @@ class _ManageWasteScreenState extends State<ManageWasteScreen> {
       print('Error adding to waste stock: $error');
     });
   }
+
+  void _removeRequestFromList(int index) {
+    setState(() {
+      _completedRequests.removeAt(index);
+    });
+  }
 }
 
 class RequestCard extends StatefulWidget {
   final String restaurantName;
   final Function(double) onAddToStock;
+  final Function() onAddedToStock; // Callback to notify parent
 
   RequestCard({
     required this.restaurantName,
     required this.onAddToStock,
+    required this.onAddedToStock, // Initialize the callback
   });
 
   @override
@@ -152,6 +150,8 @@ class _RequestCardState extends State<RequestCard> {
                     onPressed: () {
                       if (_weight > 0) {
                         widget.onAddToStock(_weight);
+                        widget
+                            .onAddedToStock(); // Notify parent when added to stock
                       }
                     },
                     child: Text('Add to Stock'),

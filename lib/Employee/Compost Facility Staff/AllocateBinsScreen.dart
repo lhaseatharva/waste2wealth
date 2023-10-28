@@ -11,33 +11,15 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
   List<String> binNames = [
     'Bin 1',
     'Bin 2',
-    'Bin 3'
+    'Bin 3',
   ]; // Add more bin names as needed
   String selectedBin = 'Bin 1';
-  num compostableWaste = 0.0;
+  double compostableWaste = 0.0; // Change the data type to double
+  bool isAllocating = false;
 
   @override
   void initState() {
     super.initState();
-    // Fetch the compostableWaste value from the Firestore waste_stock collection's weight field
-    _fetchCompostableWaste();
-  }
-
-  // Function to fetch compostableWaste from Firestore
-  void _fetchCompostableWaste() {
-    // Replace 'restaurantName' with the actual name or identifier of the restaurant
-    _firestore
-        .collection('waste_stock')
-        .doc('restaurantName') // Use the restaurant name as the document ID
-        .get()
-        .then((doc) {
-      if (doc.exists) {
-        // Check if the document exists
-        setState(() {
-          compostableWaste = doc.data()!['weight'];
-        });
-      }
-    });
   }
 
   @override
@@ -50,9 +32,21 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
       body: Column(
         children: <Widget>[
           // Display compostable waste
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text('Compostable Waste: $compostableWaste kg'),
+          StreamBuilder<QuerySnapshot>(
+            stream: _firestore.collection('waste_stock').snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                double totalWaste = 0.0;
+                for (var doc in snapshot.data!.docs) {
+                  totalWaste += doc['weight'];
+                }
+                compostableWaste = totalWaste;
+              }
+              return Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text('Compostable Waste: $compostableWaste kg'),
+              );
+            },
           ),
 
           // Bin selection dropdown
@@ -84,6 +78,12 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
             },
             child: Text('Allocate'),
           ),
+
+          // Circular Progress Indicator
+          if (isAllocating)
+            Center(
+              child: CircularProgressIndicator(),
+            ),
         ],
       ),
     );
@@ -91,21 +91,76 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
 
   // Function to allocate a bin
   void _allocateBin() {
+    setState(() {
+      isAllocating = true;
+    });
+
     if (compostableWaste > 0) {
+      // Find today's date in the format 'YYYY-MM-DD'
+      String todayDate = DateTime.now().toLocal().toString().split(' ')[0];
+
       // Update Firestore with the allocated bin and update currQty in compost_bins collection
-      _firestore.collection('compost_bins').doc(selectedBin).update({
-        'currQty': FieldValue.increment(compostableWaste),
+      _firestore
+          .collection('compost_bins')
+          .doc(selectedBin)
+          .get()
+          .then((binDoc) {
+        if (binDoc.exists) {
+          double currQty = binDoc.data()!['currQty'] + compostableWaste;
+
+          _firestore.collection('compost_bins').doc(selectedBin).update({
+            'currQty': currQty,
+          });
+
+          // Delete the waste_stock document corresponding to the selected bin
+          _firestore
+              .collection('waste_stock')
+              .where('collectedOn',
+                  isEqualTo: todayDate) // Match based on today's date
+              .get()
+              .then((querySnapshot) {
+            querySnapshot.docs.forEach((doc) {
+              doc.reference.delete();
+            });
+
+            // Show a SnackBar with a success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Allocation successful'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+
+            setState(() {
+              isAllocating = false;
+            });
+          });
+        } else {
+          // Show a SnackBar with an error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Selected bin not found'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          setState(() {
+            isAllocating = false;
+          });
+        }
+      });
+    } else {
+      setState(() {
+        isAllocating = false;
       });
 
-      // Delete the waste_stock document
-      // Replace 'restaurantName' with the actual name or identifier of the restaurant
-      _firestore.collection('waste_stock').doc('restaurantName').delete();
-
-      // Go back to the previous screen
-      Navigator.of(context).pop();
-    } else {
-      // Show an error message or dialog if compostableWaste is not greater than 0.
-      // You can handle this based on your application's requirements.
+      // Show a SnackBar with an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No waste to allocate'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 }
