@@ -70,7 +70,6 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
             ),
           ),
 
-          // Allocate button
           ElevatedButton(
             onPressed: () {
               // Handle the allocation here
@@ -90,6 +89,7 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
   }
 
   // Function to allocate a bin
+  // Function to allocate a bin
   void _allocateBin() {
     setState(() {
       isAllocating = true;
@@ -98,6 +98,10 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
     if (compostableWaste > 0) {
       // Find today's date in the format 'YYYY-MM-DD'
       String todayDate = DateTime.now().toLocal().toString().split(' ')[0];
+
+      // Calculate the completeAt date (2 months from now)
+      DateTime completeAtDate = DateTime.now().add(Duration(days: 60));
+      String completeAt = completeAtDate.toLocal().toString().split(' ')[0];
 
       // Update Firestore with the allocated bin and update currQty in compost_bins collection
       _firestore
@@ -108,15 +112,18 @@ class _AllocateBinsScreenState extends State<AllocateBinsScreen> {
         if (binDoc.exists) {
           double currQty = binDoc.data()!['currQty'] + compostableWaste;
 
-          _firestore.collection('compost_bins').doc(selectedBin).update({
+          // Calculate the filledIn date (today)
+          binDoc.reference.update({
             'currQty': currQty,
+            'waste.$selectedBin.filledIn': todayDate, // Add filledIn field
+            'waste.$selectedBin.completedOn':
+                completeAt, // Add completedOn field
           });
 
           // Delete the waste_stock document corresponding to the selected bin
           _firestore
               .collection('waste_stock')
-              .where('collectedOn',
-                  isEqualTo: todayDate) // Match based on today's date
+              .where('collectedOn', isEqualTo: todayDate)
               .get()
               .then((querySnapshot) {
             querySnapshot.docs.forEach((doc) {

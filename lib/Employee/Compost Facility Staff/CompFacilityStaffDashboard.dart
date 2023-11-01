@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/AllocateBinsScreen.dart';
+import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/CompostStatusPage.dart';
+import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/CompostStockUpdate.dart';
 import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/ManageWasteScreen.dart';
 import 'package:waste2wealth/LoginPage.dart';
 
@@ -153,6 +155,16 @@ class _CompFacilityStaffDashboardState
     if (index == 1) {
       Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => AllocateBinsScreen(),
+      ));
+    }
+    if (index == 2) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => CompostStatusPage(),
+      ));
+    }
+    if (index == 3) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => CompostStockUpdate(),
       ));
     }
   }
