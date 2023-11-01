@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:waste2wealth/LoginPage.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -16,25 +18,31 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
+  final _contactNumberController = TextEditingController();
   final _quantityController = TextEditingController();
+  final _totalBillController = TextEditingController();
   double ratePerKg = 0.0;
+  String selectedCompostType = 'Vermicompost'; // Default value
+  String? userEmail; // User's email
 
   @override
   void initState() {
     super.initState();
-    _loadRatePerKg(); // Fetch rate per kg from Firestore
+    _loadRatePerKg();
+    _loadUserEmail(); // Retrieve the user's email
+    _totalBillController.text = '0.0';
   }
 
   Future<void> _loadRatePerKg() async {
     try {
       final rateDoc = await FirebaseFirestore.instance
-          .collection('stock')
-          .doc('stock_data')
+          .collection('compost_stock')
+          .doc(selectedCompostType)
           .get();
 
       if (rateDoc.exists) {
         final rateData = rateDoc.data() as Map<String, dynamic>;
-        final rate = rateData['rate'] as num?;
+        final rate = rateData['pricePerKg'] as num?;
 
         if (rate != null) {
           setState(() {
@@ -47,97 +55,13 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.deepOrange,
-        title: Text('Buyer Dashboard'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey, // Set the form key
-          child: Column(
-            children: <Widget>[
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your name';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16), // Add separation
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(
-                  labelText: 'Address',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your address';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16), // Add separation
-              TextFormField(
-                controller: _quantityController,
-                decoration: InputDecoration(
-                  labelText: 'Quantity (in kg)',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  // Calculate amount based on quantity and rate per kg
-                  double quantity = double.tryParse(value) ?? 0.0;
-                  double amount = quantity * ratePerKg; // Calculate amount
-                  _quantityController.text = amount.toStringAsFixed(2);
-                },
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter quantity';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16), // Add separation
-              TextFormField(
-                controller: TextEditingController(
-                  text: '₹ ${ratePerKg.toStringAsFixed(2)}',
-                ), // Rate per kg as a label
-                readOnly: true, // Make it non-editable
-                decoration: InputDecoration(
-                  labelText: 'Rate Per kg',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16), // Add separation
-              ElevatedButton(
-                onPressed: () {
-                  // Check if the form is valid before displaying the confirmation dialog
-                  if (_formKey.currentState!.validate()) {
-                    _showConfirmationDialog();
-                  }
-                },
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(
-                      Colors.deepOrange.shade200), // Button color
-                ),
-                child: Text('Submit Order'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Future<void> _loadUserEmail() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        userEmail = user.email;
+      });
+    }
   }
 
   void _showConfirmationDialog() {
@@ -151,20 +75,21 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text('Rate per kg: ₹ ${ratePerKg.toStringAsFixed(2)}'),
-              Text('Amount to be paid: ₹ ${_quantityController.text}'),
+              Text('Amount to be paid: ₹ ${_totalBillController.text}'),
+              Text('Contact Number: ${_contactNumberController.text}'),
             ],
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('No'),
             ),
             ElevatedButton(
               onPressed: () {
-                _submitOrder(); // Handle order submission
-                Navigator.of(context).pop(); // Close the dialog
+                _submitOrder();
+                Navigator.of(context).pop();
               },
               style: ButtonStyle(
                 backgroundColor:
@@ -179,25 +104,35 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   }
 
   void _submitOrder() async {
-    // Prepare order data
     final orderData = {
       'name': _nameController.text,
       'address': _addressController.text,
+      'typeOfCompost': selectedCompostType,
       'quantity': double.parse(_quantityController.text),
-      'ratePerKg': ratePerKg,
-      'amount': double.parse(_quantityController.text), // Amount as a double
+      'totalBill': double.parse(_totalBillController.text),
+      'contactNumber':
+          _contactNumberController.text, // Include the contact number
     };
 
     try {
-      // Add the order to the "orders" collection in Firestore
-      await FirebaseFirestore.instance.collection('orders').add(orderData);
+      await FirebaseFirestore.instance
+          .collection('compost_orders')
+          .add(orderData);
 
-      // Clear form fields
+      await FirebaseFirestore.instance
+          .collection('compost_stock')
+          .doc(selectedCompostType)
+          .update({
+        'quantity':
+            FieldValue.increment(-double.parse(_quantityController.text)),
+      });
+
       _nameController.clear();
       _addressController.clear();
       _quantityController.clear();
+      _contactNumberController.clear();
+      _totalBillController.text = '0.0';
 
-      // Show a success message or navigate to a success screen
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -233,6 +168,183 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
           );
         },
       );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.deepOrange,
+        title: Text('Buyer Dashboard'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            UserAccountsDrawerHeader(
+              accountEmail: userEmail != null ? Text(userEmail!) : null,
+              currentAccountPicture: CircleAvatar(
+                child: Icon(Icons.person),
+                backgroundColor: Colors.deepOrange,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.deepOrange,
+              ),
+              accountName: null,
+            ),
+            ListTile(
+              title: Text('My Orders'),
+              leading: Icon(Icons.shopping_cart),
+              onTap: () {
+                // Handle "My Orders" option
+                // Add your code to navigate to the orders page.
+                Navigator.pop(context); // Close the drawer
+              },
+            ),
+            ListTile(
+              title: Text('Log Out'),
+              leading: Icon(Icons.exit_to_app),
+              onTap: _logOut, // Call the log out function when pressed
+            ),
+          ],
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _addressController,
+                decoration: InputDecoration(
+                  labelText: 'Address',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your address';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _contactNumberController,
+                decoration: InputDecoration(
+                  labelText: 'Contact Number', // Add contact number field
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your contact number';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              DropdownButton<String>(
+                value: selectedCompostType,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedCompostType = newValue!;
+                    _loadRatePerKg();
+                  });
+                },
+                items: <String>['Vermicompost', 'Organic']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+              TextFormField(
+                controller: _quantityController,
+                decoration: InputDecoration(
+                  labelText: 'Quantity (in kg)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  double quantity = double.tryParse(value) ?? 0.0;
+                  double amount = quantity * ratePerKg;
+                  _totalBillController.text = amount.toStringAsFixed(2);
+                },
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter quantity';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: TextEditingController(
+                  text: '₹ ${ratePerKg.toStringAsFixed(2)}',
+                ),
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'Rate Per kg',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _totalBillController,
+                readOnly: true,
+                decoration: InputDecoration(
+                  labelText: 'Total Bill',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _showConfirmationDialog();
+                  }
+                },
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all(Colors.deepOrange.shade200),
+                ),
+                child: Text('Submit Order'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _logOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginPage(), // Navigate to your login page
+        ),
+      );
+    } catch (e) {
+      print('Error during log out: $e');
     }
   }
 }

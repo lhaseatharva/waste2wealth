@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:waste2wealth/LoginPage.dart';
 
 class AdminPanel extends StatefulWidget {
   final String adminEmail;
@@ -135,7 +136,7 @@ class _AdminPanelState extends State<AdminPanel> {
           actions: [
             TextButton(
               onPressed: () {
-                _logout();
+                _logOut();
               },
               child: Text('Yes'),
             ),
@@ -151,9 +152,18 @@ class _AdminPanelState extends State<AdminPanel> {
     );
   }
 
-  void _logout() async {
-    await widget._auth.signOut();
-    Navigator.pushReplacementNamed(context, '/login');
+  void _logOut() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginPage(), // Navigate to your login page
+        ),
+      );
+    } catch (e) {
+      print('Error during log out: $e');
+    }
   }
 }
 

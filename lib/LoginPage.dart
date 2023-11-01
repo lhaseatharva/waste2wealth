@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:waste2wealth/AdminPanel.dart';
+import 'package:waste2wealth/BuyerDashboard.dart';
 import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/CompFacilityStaffDashboard.dart';
-//import 'package:waste2wealth/EmployeeDashboard.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/PickUpStaffDashboard.dart';
 
 class LoginPage extends StatefulWidget {
@@ -29,6 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   void _handleRoleChange(String value) {
     setState(() {
       _selectedRole = value;
+      _selectedSubCategory = 'Pickup Staff'; // Reset subcategory on role change
     });
   }
 
@@ -54,7 +55,9 @@ class _LoginPageState extends State<LoginPage> {
               MaterialPageRoute(
                   builder: (context) =>
                       AdminPanel(adminEmail: _emailController.text)));
-          _showSuccessDialog(); // Show success dialog
+          _showSuccessDialog('Admin'); // Show success dialog for admin
+        } else {
+          _showLoginErrorDialog(); // Show login error dialog
         }
       } else if (_selectedRole == 'Employee') {
         if (_selectedSubCategory == 'Pickup Staff') {
@@ -63,18 +66,25 @@ class _LoginPageState extends State<LoginPage> {
               MaterialPageRoute(
                   builder: (context) =>
                       PickUpStaffDashboard(userEmail: _emailController.text)));
-          _showSuccessDialog(); // Show success dialog
+          _showSuccessDialog(
+              'Pickup Staff'); // Show success dialog for Pickup Staff
         } else if (_selectedSubCategory == 'Compost Facility Staff') {
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                   builder: (context) => CompFacilityStaffDashboard()));
-          // Add code to navigate to the Compost Facility Staff Dashboard
-          _showSuccessDialog(); // Show success dialog
+          _showSuccessDialog(
+              'Compost Facility Staff'); // Show success dialog for Compost Facility Staff
+        } else {
+          _showLoginErrorDialog(); // Show login error dialog
         }
       } else if (_selectedRole == 'Buyer') {
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => BuyerDashboard()));
         // Redirect to Buyer-specific page (add your logic here)
-        _showSuccessDialog(); // Show success dialog
+        _showSuccessDialog('Buyer'); // Show success dialog for Buyer
+      } else {
+        _showLoginErrorDialog(); // Show login error dialog
       }
     } catch (e) {
       print('Error during login: $e');
@@ -101,14 +111,14 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog(String userType) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Login Success'),
           content: Text(
-              'Successfully Logged in under the category: $_selectedRole as $_selectedSubCategory'),
+              'Successfully logged in as a $userType under the category: $_selectedRole'),
           actions: [
             TextButton(
               onPressed: () {
@@ -135,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                 Navigator.of(context).pop();
               },
               child: Text('OK'),
-            ),
+            )
           ],
         );
       },
