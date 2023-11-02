@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:waste2wealth/Admin/CompostBinManagement.dart';
+import 'package:waste2wealth/Admin/CompostStockManagement.dart';
 import 'package:waste2wealth/Admin/ManagePickupSchedule.dart';
 import 'package:waste2wealth/Admin/WasteStockManagement.dart';
 import 'package:waste2wealth/LoginPage.dart';
 
 class AdminPanel extends StatefulWidget {
   final String adminEmail;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  //final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AdminPanel({required this.adminEmail});
 
@@ -77,7 +78,7 @@ class _AdminPanelState extends State<AdminPanel> {
             },
           ),
           FunctionalitySquare(
-            title: 'Compost Management',
+            title: 'Compost Bin Management',
             icon: Icons.eco,
             onTap: () {
               Navigator.push(
@@ -90,9 +91,15 @@ class _AdminPanelState extends State<AdminPanel> {
             },
           ),
           FunctionalitySquare(
-            title: 'Compost Selling',
+            title: 'Compost Stock Management',
             icon: Icons.shop,
             onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CompostStockManagement(),
+                ),
+              );
               // Add your logic for Compost Selling here
             },
           ),
