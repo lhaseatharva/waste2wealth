@@ -2,10 +2,11 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:waste2wealth/AdminPanel.dart';
+import 'package:waste2wealth/Admin/AdminPanel.dart';
 import 'package:waste2wealth/BuyerDashboard.dart';
 import 'package:waste2wealth/Employee/Compost%20Facility%20Staff/CompFacilityStaffDashboard.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/PickUpStaffDashboard.dart';
+import 'package:waste2wealth/WelcomePage.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -166,6 +167,17 @@ class _LoginPageState extends State<LoginPage> {
         appBar: AppBar(
           backgroundColor: Colors.deepOrange,
           title: Text('Login Page'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              // Navigate to the WelcomePage when the back button is pressed
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => WelcomePage(),
+                ),
+              );
+            },
+          ),
         ),
         body: Center(
           child: SingleChildScrollView(
