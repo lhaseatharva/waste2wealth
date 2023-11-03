@@ -41,7 +41,7 @@ class _ManageRequestsState extends State<ManageRequests> {
       if (userDoc.exists) {
         final scheduleData = userDoc.data();
         final area = scheduleData?[dayOfWeek] as String;
-        if (area != null && area.isNotEmpty) {
+        if (area.isNotEmpty) {
           print('User area for $dayOfWeek: $area');
           setState(() {
             userArea = area; // Set the user's area for the current day
