@@ -34,17 +34,15 @@ class _ManageRequestsState extends State<ManageRequests> {
     if (user != null) {
       final userEmail = user.email;
       final dayOfWeek = DateFormat('EEEE').format(DateTime.now());
-      final userDoc = await _firestore
-          .collection('pickup_schedule')
-          .doc(userEmail) // Use the user's email as the document name
-          .get();
+      final userDoc =
+          await _firestore.collection('pickup_schedule').doc(userEmail).get();
       if (userDoc.exists) {
         final scheduleData = userDoc.data();
         final area = scheduleData?[dayOfWeek] as String;
         if (area.isNotEmpty) {
           print('User area for $dayOfWeek: $area');
           setState(() {
-            userArea = area; // Set the user's area for the current day
+            userArea = area;
           });
         }
       }
@@ -73,11 +71,10 @@ class _ManageRequestsState extends State<ManageRequests> {
                 return RequestCard(
                   request: request,
                   onDelete: () {
-                    _deleteRequest(request); // Handle delete button action
+                    _deleteRequest(request);
                   },
                   onMarkAsComplete: () {
-                    _markAsComplete(
-                        request); // Handle mark as complete button action
+                    _markAsComplete(request);
                   },
                 );
               }).toList(),
@@ -87,7 +84,6 @@ class _ManageRequestsState extends State<ManageRequests> {
 
   Future<void> _fetchMatchingRequests() async {
     if (userArea.isEmpty || currentDay.isEmpty) {
-      // If the user's area or current day is not set, don't fetch any requests
       return;
     }
 
@@ -110,10 +106,8 @@ class _ManageRequestsState extends State<ManageRequests> {
   }
 
   void _markAsComplete(Map<String, dynamic> request) async {
-    final documentId = request[
-        'documentID']; // Replace 'documentID' with the actual field name
+    final documentId = request['documentID'];
 
-    // Update both the 'daysOfWeek' field and 'Status' map for the current day
     final updateData = {
       'daysOfWeek.$currentDay': false,
       'status.$currentDay': 'Complete',
@@ -128,13 +122,11 @@ class _ManageRequestsState extends State<ManageRequests> {
       print('Error marking as complete: $e');
     }
 
-    // After marking as complete, refresh the list of requests
     await _fetchMatchingRequests();
   }
 
   void _deleteRequest(Map<String, dynamic> request) async {
-    final documentId = request[
-        'documentID']; // Replace 'documentID' with the actual field name
+    final documentId = request['documentID'];
 
     try {
       await _firestore.collection('pickup_requests').doc(documentId).delete();
@@ -142,7 +134,6 @@ class _ManageRequestsState extends State<ManageRequests> {
       print('Error deleting request: $e');
     }
 
-    // After deleting, refresh the list of requests
     await _fetchMatchingRequests();
   }
 }
@@ -192,7 +183,6 @@ class _RequestCardState extends State<RequestCard> {
                   Text('Contact Person: ${widget.request['contactPerson']}'),
                   Text('Contact Number: ${widget.request['contactNumber']}'),
                   Center(
-                    // Center the buttons
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

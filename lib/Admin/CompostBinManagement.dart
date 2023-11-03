@@ -24,7 +24,6 @@ class _CompostBinManagementState extends State<CompostBinManagement> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              // Navigate to the AdminPanel when the back button is pressed
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => AdminPanel(adminEmail: ''),
@@ -37,7 +36,7 @@ class _CompostBinManagementState extends State<CompostBinManagement> {
           future: compostBinsCollection.get(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator(); // Display a loading indicator
+              return CircularProgressIndicator();
             }
 
             if (snapshot.hasError) {

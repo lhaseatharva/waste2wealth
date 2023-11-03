@@ -11,14 +11,12 @@ class EmployeeDashboard extends StatefulWidget {
 class _EmployeeDashboardState extends State<EmployeeDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? selectedVolunteer;
-  List<String> volunteers = []; // List to store volunteer names
-  Map<String, String?> requestVolunteerMap =
-      {}; // Map to store request-volunteer associations
+  List<String> volunteers = [];
+  Map<String, String?> requestVolunteerMap = {};
 
   @override
   void initState() {
     super.initState();
-    // Fetch volunteers and request-volunteer associations from Firestore when the widget initializes
     _fetchVolunteers();
   }
 
@@ -107,8 +105,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
             SizedBox(height: 16.0),
             Expanded(
               child: SingleChildScrollView(
-                child:
-                    _buildRequestsList(), // Use a function to build the requests list
+                child: _buildRequestsList(),
               ),
             ),
           ],
@@ -172,7 +169,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
     final availableVolunteers = volunteers
         .where((volunteer) =>
             requestVolunteerMap.containsValue(volunteer) ||
-            volunteer != requestVolunteer) // Include selected volunteer
+            volunteer != requestVolunteer)
         .toList();
 
     return Row(
@@ -188,7 +185,6 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
               .toList(),
           onChanged: (value) {
             setState(() {
-              // Update the request-volunteer association
               requestVolunteerMap[requestId] = value;
             });
           },
@@ -200,7 +196,7 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
               : null,
           child: Text('Approve'),
           style: ElevatedButton.styleFrom(
-            primary: Colors.deepOrange, // Set button color to DeepOrange
+            primary: Colors.deepOrange,
           ),
         ),
       ],
@@ -210,7 +206,6 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
   void _fulfillRequest(String requestId, String? requestVolunteer) async {
     if (requestVolunteer != null) {
       try {
-        // Update the request status to Completed
         await FirebaseFirestore.instance
             .collection('pickup_requests')
             .doc(requestId)
@@ -218,7 +213,6 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
           'status': 'Completed',
         });
 
-        // Update the volunteer's isAvail field to false
         await FirebaseFirestore.instance
             .collection('volunteers')
             .where('name', isEqualTo: requestVolunteer)
@@ -265,14 +259,14 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('No'),
             ),
             TextButton(
               onPressed: () {
                 _logout();
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('Yes'),
             ),

@@ -28,8 +28,8 @@ class _ManageScheduleState extends State<ManageSchedule> {
     'Talegaon',
   ];
 
-  String name = ''; // You can add logic to populate this field
-  String contact = ''; // You can add logic to populate this field
+  String name = '';
+  String contact = '';
 
   Map<String, String?> dayToArea = {
     'Monday': null,

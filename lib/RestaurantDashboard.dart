@@ -16,7 +16,6 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
   TextEditingController _contactPersonController = TextEditingController();
   TextEditingController _contactNumberController = TextEditingController();
 
-  // Map to store the selected days of the week
   Map<String, bool> selectedDays = {
     'Monday': false,
     'Tuesday': false,
@@ -164,10 +163,8 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
     String contactPerson = _contactPersonController.text;
     String contactNumber = _contactNumberController.text;
 
-    // Generate a new unique request ID
     String requestId = _generateRequestId();
 
-    // Create a map to store the status for each day
     Map<String, String> status = {};
     selectedDays.forEach((day, isSelected) {
       if (isSelected) {
@@ -177,7 +174,6 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
       }
     });
 
-    // Get the existing daysOfWeek data from selectedDays
     Map<String, bool> daysOfWeek = Map.from(selectedDays);
 
     await _firestore.collection('pickup_requests').doc(requestId).set({
@@ -186,12 +182,11 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
       'contactPerson': contactPerson,
       'contactNumber': contactNumber,
       'timestamp': FieldValue.serverTimestamp(),
-      'status': status, // Store status as a map
-      'daysOfWeek': daysOfWeek, // Keep daysOfWeek as a map
+      'status': status,
+      'daysOfWeek': daysOfWeek,
       'documentID': requestId,
     });
 
-    // Clear the input fields and reset selected days
     _restaurantNameController.clear();
     _areaController.clear();
     _contactPersonController.clear();
@@ -200,12 +195,10 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
       selectedDays = selectedDays.map((day, value) => MapEntry(day, false));
     });
 
-    // Show confirmation dialog
     _showConfirmationDialog();
   }
 
   String _generateRequestId() {
-    // Generate a random alphanumeric string of length 10 for the Request ID
     final Random _random = Random.secure();
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     return List.generate(10, (index) => chars[_random.nextInt(chars.length)])
@@ -223,7 +216,7 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
               },
               child: Text('OK'),
             ),

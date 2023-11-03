@@ -98,7 +98,7 @@ class _CompFacilityStaffDashboardState
                   ),
                   SizedBox(height: 10),
                   Text(
-                    userEmail, // Use the userEmail property
+                    userEmail,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,

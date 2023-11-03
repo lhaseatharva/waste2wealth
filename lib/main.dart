@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:waste2wealth/BuyerDashboard.dart';
+import 'package:waste2wealth/Buyer/BuyerDashboard.dart';
 import 'package:waste2wealth/Employee/EmployeeDashboard.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/ManageRequests.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/ManageSchedule.dart';

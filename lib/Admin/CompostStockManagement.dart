@@ -24,7 +24,6 @@ class _CompostStockManagementState extends State<CompostStockManagement> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              // Navigate to the AdminPanel when the back button is pressed
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => AdminPanel(adminEmail: ''),
@@ -37,7 +36,7 @@ class _CompostStockManagementState extends State<CompostStockManagement> {
           future: compostStockCollection.get(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator(); // Display a loading indicator
+              return CircularProgressIndicator();
             }
 
             if (snapshot.hasError) {
@@ -51,7 +50,7 @@ class _CompostStockManagementState extends State<CompostStockManagement> {
               itemBuilder: (context, index) {
                 var compostStockData =
                     documents[index].data() as Map<String, dynamic>;
-                final documentName = documents[index].id; // Document name
+                final documentName = documents[index].id;
 
                 return Card(
                   margin: EdgeInsets.all(8.0),

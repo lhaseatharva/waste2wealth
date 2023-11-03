@@ -20,7 +20,6 @@ class _WasteStockManagementState extends State<WasteStockManagement> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            // Navigate to the AdminPanel when the back button is pressed
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (context) => AdminPanel(adminEmail: ''),
@@ -34,7 +33,7 @@ class _WasteStockManagementState extends State<WasteStockManagement> {
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
-              child: CircularProgressIndicator(), // Display a loading indicator
+              child: CircularProgressIndicator(),
             );
           }
 

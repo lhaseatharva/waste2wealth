@@ -21,9 +21,7 @@ class _PickUpStaffDashboardState extends State<PickUpStaffDashboard> {
         actions: [
           IconButton(
             icon: Icon(Icons.notifications),
-            onPressed: () {
-              // Add logic to handle notifications
-            },
+            onPressed: () {},
           ),
         ],
       ),

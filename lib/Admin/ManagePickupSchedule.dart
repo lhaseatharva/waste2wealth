@@ -21,7 +21,7 @@ class _ManagePickupScheduleState extends State<ManagePickupSchedule> {
         stream: pickupScheduleCollection.snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return CircularProgressIndicator(); // Display a loading indicator
+            return CircularProgressIndicator();
           }
 
           List<DocumentSnapshot> documents = snapshot.data!.docs;
@@ -37,7 +37,6 @@ class _ManagePickupScheduleState extends State<ManagePickupSchedule> {
                 children: <Widget>[
                   ListTile(
                     title: Text('Phone Number: ${scheduleData['contact']}'),
-                    //subtitle: Text('Driver: ${scheduleData['driver']}'),
                   ),
                   ListTile(
                     title: Text('Monday Area:${scheduleData['Monday']}'),
@@ -61,7 +60,6 @@ class _ManagePickupScheduleState extends State<ManagePickupSchedule> {
                   ListTile(
                     title: Text('Saturday Area: ${scheduleData['Saturday']}'),
                   ),
-                  // Add more ListTile widgets for other details
                 ],
               );
             },

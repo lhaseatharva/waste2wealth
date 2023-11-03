@@ -22,14 +22,14 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
   final _quantityController = TextEditingController();
   final _totalBillController = TextEditingController();
   double ratePerKg = 0.0;
-  String selectedCompostType = 'Vermicompost'; // Default value
-  String? userEmail; // User's email
+  String selectedCompostType = 'Vermicompost';
+  String? userEmail;
 
   @override
   void initState() {
     super.initState();
     _loadRatePerKg();
-    _loadUserEmail(); // Retrieve the user's email
+    _loadUserEmail();
     _totalBillController.text = '0.0';
   }
 
@@ -110,8 +110,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
       'typeOfCompost': selectedCompostType,
       'quantity': double.parse(_quantityController.text),
       'totalBill': double.parse(_totalBillController.text),
-      'contactNumber':
-          _contactNumberController.text, // Include the contact number
+      'contactNumber': _contactNumberController.text,
     };
 
     try {
@@ -197,15 +196,13 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               title: Text('My Orders'),
               leading: Icon(Icons.shopping_cart),
               onTap: () {
-                // Handle "My Orders" option
-                // Add your code to navigate to the orders page.
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
               },
             ),
             ListTile(
               title: Text('Log Out'),
               leading: Icon(Icons.exit_to_app),
-              onTap: _logOut, // Call the log out function when pressed
+              onTap: _logOut,
             ),
           ],
         ),
@@ -247,7 +244,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
               TextFormField(
                 controller: _contactNumberController,
                 decoration: InputDecoration(
-                  labelText: 'Contact Number', // Add contact number field
+                  labelText: 'Contact Number',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.phone,
@@ -340,7 +337,7 @@ class _BuyerDashboardState extends State<BuyerDashboard> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => LoginPage(), // Navigate to your login page
+          builder: (context) => LoginPage(),
         ),
       );
     } catch (e) {

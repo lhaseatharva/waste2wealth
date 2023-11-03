@@ -55,11 +55,9 @@ class _ManageWasteScreenState extends State<ManageWasteScreen> {
             onAddToStock: (double weight) {
               _addToStock(restaurantName, weight);
 
-              // Remove the request from the list when added to stock
               _removeRequestFromList(index);
             },
             onAddedToStock: () {
-              // Remove the request from the list when added to stock
               _removeRequestFromList(index);
             },
           );

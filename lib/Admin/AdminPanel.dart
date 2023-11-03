@@ -8,7 +8,6 @@ import 'package:waste2wealth/LoginPage.dart';
 
 class AdminPanel extends StatefulWidget {
   final String adminEmail;
-  //final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AdminPanel({required this.adminEmail});
 
@@ -87,7 +86,6 @@ class _AdminPanelState extends State<AdminPanel> {
                   builder: (context) => CompostBinManagement(),
                 ),
               );
-              // Add your logic for Compost Management here
             },
           ),
           FunctionalitySquare(
@@ -100,7 +98,6 @@ class _AdminPanelState extends State<AdminPanel> {
                   builder: (context) => CompostStockManagement(),
                 ),
               );
-              // Add your logic for Compost Selling here
             },
           ),
         ],
