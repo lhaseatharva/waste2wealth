@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:waste2wealth/Buyer/BuyerDashboard.dart';
-import 'package:waste2wealth/Employee/EmployeeDashboard.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/ManageRequests.dart';
 import 'package:waste2wealth/Employee/Pickup%20Staff/ManageSchedule.dart';
 import 'package:waste2wealth/LoginPage.dart';
-import 'package:waste2wealth/MyRequestsPage.dart';
 import 'package:waste2wealth/RegistrationPage.dart';
 import 'package:waste2wealth/WelcomePage.dart';
 import 'package:waste2wealth/RestaurantDashboard.dart';
@@ -29,8 +27,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/register': (context) => RegistrationPage(),
         '/restaurant': (context) => RestaurantDashboard(),
-        '/employee': (context) => EmployeeDashboard(),
-        '/my_requests': (context) => MyRequestsPage(),
         '/buyer': (context) => BuyerDashboard(),
         '/managesched': (context) =>
             ManageSchedule(userEmail: 'user@example.com'),
