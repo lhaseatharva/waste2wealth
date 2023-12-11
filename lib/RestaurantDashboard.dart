@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'dart:math';
 
 class RestaurantDashboard extends StatefulWidget {
@@ -140,7 +141,10 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                         }
                       },
                 child: _isSubmitting
-                    ? CircularProgressIndicator()
+                    ? SpinKitCircle(
+                        color: Colors.white,
+                        size: 20.0,
+                      )
                     : Text('Submit Request'),
                 style: ButtonStyle(
                   backgroundColor:
